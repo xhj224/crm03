@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--0.读取dbconfig.properties配置文件-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:dbconfig.properties"/>
+    </bean>
+
+    <!--1.配置数据源-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${driver}"/>
+        <property name="jdbcUrl" value="${url}"/>
+        <property name="user" value="${username}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+
+    <!--2.配置工厂-->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!--2.2方言等属性设置-->
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <!--格式化sql语句-->
+                <!--<prop key="hibernate.format_sql">true</prop>-->
+            </props>
+        </property>
+        <!--2.3注册ORM-->
+        <property name="packagesToScan">
+            <list>
+                <value>com.tz.entity</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--3.配置事务管理器（Transaction Manager），设置由谁来管理声明式事务-->
+    <bean id="tm" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <!--4.注解方式实现声明式事务,指定注解方式实现事务-->
+    <tx:annotation-driven transaction-manager="tm"/>
+
+    <!--5.启用组件扫描-->
+    <context:component-scan base-package="com.tz"/>
+
+</beans>
